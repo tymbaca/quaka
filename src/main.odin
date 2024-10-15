@@ -15,6 +15,7 @@ TODO:
 
 Component :: union {
     Player,
+    Sprint,
     rl.Camera3D,
 }
 
@@ -27,6 +28,7 @@ main :: proc() {
     rl.SetConfigFlags({rl.ConfigFlag.WINDOW_RESIZABLE})
     rl.InitWindow(1200, 800, "quaka")
     defer rl.CloseWindow()
+    rl.DisableCursor()
     // rl.SetTargetFPS(60)
 
     imgui.CreateContext(nil)
@@ -45,13 +47,17 @@ main :: proc() {
     }
 
     world := ecs.new_world(Component)
-    ecs.create_entity(&world, Player{
-        position = {1,1,1},
-        direction = rl.Vector3Normalize({-1,-1,-1}),
-    })
+    ecs.create_entity(&world, 
+        Player{
+            position = {1,1,1},
+            direction = rl.Vector3Normalize({-1,-1,-1}),
+            speed = 2,
+        },
+        Sprint{mul = 2},
+    )
     camera_entity := ecs.create_entity(&world, camera)
     // SYSTEM REGISTRATION
-    ecs.register_systems(&world, player_camera_system, common_system, collection = UPDATE_COLLECTION)
+    ecs.register_systems(&world, player_camera_system, common_system, player_move_system, collection = UPDATE_COLLECTION)
     ecs.register_systems(&world, draw_scene_system, collection = DRAW3D_COLLECTION)
     ecs.register_systems(&world, move_camera_by_buttons_system, collection = UPDATE_PRE_2D_COLLECTION)
 
