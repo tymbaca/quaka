@@ -13,6 +13,11 @@ TODO:
 - private funcs in ecs (update_time)
 */
 
+Component :: union {
+    Player,
+    rl.Camera3D,
+}
+
 UPDATE_COLLECTION :: "update"
 DRAW3D_COLLECTION :: "draw-3d"
 UPDATE_PRE_2D_COLLECTION :: "update-pre-2d"
@@ -22,7 +27,7 @@ main :: proc() {
     rl.SetConfigFlags({rl.ConfigFlag.WINDOW_RESIZABLE})
     rl.InitWindow(1200, 800, "quaka")
     defer rl.CloseWindow()
-    rl.SetTargetFPS(60)
+    // rl.SetTargetFPS(60)
 
     imgui.CreateContext(nil)
     defer imgui.DestroyContext(nil)
@@ -46,7 +51,7 @@ main :: proc() {
     })
     camera_entity := ecs.create_entity(&world, camera)
     // SYSTEM REGISTRATION
-    ecs.register_systems(&world, player_camera_system, collection = UPDATE_COLLECTION)
+    ecs.register_systems(&world, player_camera_system, common_system, collection = UPDATE_COLLECTION)
     ecs.register_systems(&world, draw_scene_system, collection = DRAW3D_COLLECTION)
     ecs.register_systems(&world, move_camera_by_buttons_system, collection = UPDATE_PRE_2D_COLLECTION)
 
@@ -54,7 +59,6 @@ main :: proc() {
         // YOUR CODE HERE
         ecs.update_time(&world)
         ecs.update_collection(&world, UPDATE_COLLECTION)
-        fmt.println(world)
 
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLACK)
@@ -71,92 +75,10 @@ main :: proc() {
         // YOUR CODE HERE
         ecs.update_collection(&world, UPDATE_PRE_2D_COLLECTION)
         ecs.update_collection(&world, DRAW2D_COLLECTION)
-        imgui.Button("click me", {100, 40})
+        rl.DrawFPS(10,10)
 
-        imgui.ShowDemoWindow(nil)
         imgui.Render()
         imgui_rl.render_draw_data(imgui.GetDrawData())
         rl.EndDrawing()
     }
-}
-
-Component :: union {
-    Player,
-    rl.Camera3D,
-}
-
-Player :: struct {
-    position: [3]f32,
-    direction: [3]f32,
-}
-
-player_camera_system :: proc(w: ^ecs.World(Component)) {
-    // Find the player and camera 
-    camera_entity: Maybe(^ecs.Entity)
-    player_entity: Maybe(^ecs.Entity)
-
-	for &e in w.entities {
-		if ecs.has_components(e, rl.Camera3D) {
-            camera_entity = &e
-		}
-		if ecs.has_components(e, Player) {
-            player_entity = &e
-		}
-	}
-
-    fmt.println("hello from camera system")
-    
-    if camera_entity == nil || player_entity == nil {
-        return
-    }
-
-    camera := ecs.must_get_component(w^, camera_entity.(^ecs.Entity).id, rl.Camera3D)
-    player := ecs.must_get_component(w^, player_entity.(^ecs.Entity).id, Player)
-
-    // Logic here
-    camera.position = player.position
-    camera.target = player.position + player.direction
-
-    ecs.set_component(w, camera_entity.(^ecs.Entity), camera)
-    ecs.set_component(w, player_entity.(^ecs.Entity), player)
-}
-
-draw_scene_system :: proc(w: ^ecs.World(Component)) {
-    rl.DrawGrid(10, 1)
-}
-
-move_camera_by_buttons_system :: proc(w: ^ecs.World(Component)) {
-    player_entity, ok := get_player(w)
-    if !ok do return
-
-    player := ecs.must_get_component(w^, player_entity.id, Player)
-
-    imgui.Begin("camera control")
-    imgui.Button("left", {50, 30})
-    if imgui.IsItemActive() {
-        player.position.x += 0.3
-    }
-    imgui.End()
-
-    ecs.set_component(w, player_entity, player)
-}
-
-get_camera :: proc(w: ^ecs.World(Component)) -> (^ecs.Entity, bool) #optional_ok {
-	for &e in w.entities {
-		if ecs.has_components(e, rl.Camera3D) {
-            return &e, true
-		}
-	}
-
-    return nil, false
-}
-
-get_player :: proc(w: ^ecs.World(Component)) -> (^ecs.Entity, bool) #optional_ok {
-	for &e in w.entities {
-		if ecs.has_components(e, Player) {
-            return &e, true
-		}
-	}
-
-    return nil, false
 }
