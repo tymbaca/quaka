@@ -11,6 +11,8 @@ import rl "vendor:raylib"
 TODO:
 - preallocate entities/cmp
 - private funcs in ecs (update_time)
+- use world temp_allocator? to free all between frames
+- limit up/down look direction
 */
 
 Component :: union {
@@ -55,6 +57,8 @@ main :: proc() {
 			direction = rl.Vector3Normalize({-1, -1, -1}),
 			speed = 2,
 			sprint = 2,
+            height = 0.5,
+            jump = 3.4,
 		},
 	)
 	camera_entity := ecs.create_entity(&world, camera)
@@ -65,13 +69,15 @@ main :: proc() {
 		common_system,
 		player_move_system,
         runner_fall_system,
+        fake_ground_system,
         apply_velocity_system,
+        jump_system,
 		collection = UPDATE_COLLECTION,
 	)
 	ecs.register_systems(&world, draw_scene_system, collection = DRAW3D_COLLECTION)
 	ecs.register_systems(
 		&world,
-		move_camera_by_buttons_system,
+        debug_player_system,
 		collection = UPDATE_PRE_2D_COLLECTION,
 	)
 
