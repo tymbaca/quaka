@@ -25,16 +25,17 @@ player_move_system :: proc(w: ^ecs.World(Component)) {
 	if !ok do return
 
 	if runner.on_ground {
-		player_move_on_ground(w, &runner)
+		runner = player_move_on_ground(w, runner)
 	} else {
-		player_move_in_air(w, &runner)
+		runner = player_move_in_air(w, runner)
 	}
 
-	ecs.set_component(w, player_entity, runner)
+	ecs.update_component(w, player_entity.id, runner)
 }
 
 
-player_move_on_ground :: proc(w: ^ecs.World(Component), runner: ^Runner) {
+player_move_on_ground :: proc(w: ^ecs.World(Component), runner: Runner) -> Runner{
+    runner := runner
 	ACCELERATION :: 30
 	mov: vec3
 
@@ -66,9 +67,11 @@ player_move_on_ground :: proc(w: ^ecs.World(Component), runner: ^Runner) {
 
 	runner.velocity.xz += mov.xz * ACCELERATION * w.delta
 	runner.velocity.xz = rl.Vector2ClampValue(runner.velocity.xz, 0, speed)
+    return runner
 }
 
-player_move_in_air :: proc(w: ^ecs.World(Component), runner: ^Runner) {
+player_move_in_air :: proc(w: ^ecs.World(Component), runner: Runner) -> Runner {
+    runner := runner
 	AIR_CONTROL :: 5
 	mov: vec3
 
@@ -90,11 +93,12 @@ player_move_in_air :: proc(w: ^ecs.World(Component), runner: ^Runner) {
 
 	// clamp in air speed by it's maximum sprint speed
 	runner.velocity.xz = rl.Vector2ClampValue(runner.velocity.xz, 0, runner.speed * runner.sprint)
+    return runner
 }
 
 GROUND_FRICTION :: 5
 ground_friction_system :: proc(w: ^ecs.World(Component)) {
-	for &e in w.entities {
+	for e in w.entities {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
@@ -102,7 +106,7 @@ ground_friction_system :: proc(w: ^ecs.World(Component)) {
 			// stop if speed is too low
 			if rl.Vector2Length(runner.velocity.xz) < 0.001 {
 				runner.velocity.xz *= 0
-				ecs.set_component(w, &e, runner)
+				ecs.update_component(w, e.id, runner)
 				continue
 			}
 
@@ -114,26 +118,26 @@ ground_friction_system :: proc(w: ^ecs.World(Component)) {
 			if rl.Vector2Length(runner.velocity.xz) < 1 {
 				runner.velocity.xz *= fricton
 			}
-			ecs.set_component(w, &e, runner)
+			ecs.update_component(w, e.id, runner)
 		}
 	}
 }
 
 apply_velocity_system :: proc(w: ^ecs.World(Component)) {
-	for &e in w.entities {
+	for e in w.entities {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
 		runner.position += runner.velocity * w.delta
 
-		ecs.set_component(w, &e, runner)
+		ecs.update_component(w, e.id, runner)
 	}
 }
 
 FALL_G :: 9.8
 MAX_FALL_VEL :: 100
 gravity_system :: proc(w: ^ecs.World(Component)) {
-	for &e in w.entities {
+	for e in w.entities {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
@@ -144,12 +148,12 @@ gravity_system :: proc(w: ^ecs.World(Component)) {
 			runner.velocity.y = 0
 		}
 
-		ecs.set_component(w, &e, runner)
+		ecs.update_component(w, e.id, runner)
 	}
 }
 
 is_on_ground_system :: proc(w: ^ecs.World(Component)) {
-	for &e in w.entities {
+	for e in w.entities {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
@@ -160,7 +164,7 @@ is_on_ground_system :: proc(w: ^ecs.World(Component)) {
 			runner.on_ground = false
 		}
 
-		ecs.set_component(w, &e, runner)
+		ecs.update_component(w, e.id, runner)
 	}
 }
 
@@ -170,7 +174,7 @@ is_on_ground :: proc(w: ^ecs.World(Component), runner: Runner) -> bool {
 }
 
 jump_system :: proc(w: ^ecs.World(Component)) {
-	for &e in w.entities {
+	for e in w.entities {
 		if !ecs.has_components(e, Runner, Player) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
@@ -178,6 +182,6 @@ jump_system :: proc(w: ^ecs.World(Component)) {
 			runner.velocity.y = runner.jump
 		}
 
-		ecs.set_component(w, &e, runner)
+		ecs.update_component(w, e.id, runner)
 	}
 }

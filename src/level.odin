@@ -10,9 +10,9 @@ Level :: struct {
     blocks: [MAX_LEVEL_SIDE][MAX_LEVEL_SIDE][MAX_LEVEL_SIDE]bool
 }
 
-collide_blocks_system :: proc(w: ^ecs.World(Component)) { 
-    player_e, player, ok :=  get_player(w)
-    if ok {
-        
-    }
-}
+// collide_blocks_system :: proc(w: ^ecs.World(Component)) { 
+//     player_e, player, ok :=  get_player(w)
+//     if ok {
+//        
+//     }
+// }

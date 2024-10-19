@@ -40,8 +40,8 @@ player_camera_system :: proc(w: ^ecs.World(Component)) {
     camera.position = runner.position
     camera.target = runner.position + runner.direction
 
-    ecs.set_component(w, camera_entity, camera)
-    ecs.set_component(w, player_entity, runner)
+    ecs.update_component(w, camera_entity.id, camera)
+    ecs.update_component(w, player_entity.id, runner)
 }
 
 draw_scene_system :: proc(w: ^ecs.World(Component)) {
@@ -61,24 +61,8 @@ vector_in_sprint_range :: proc(mov: vec3, look: vec3) -> bool {
     flat_mov := flatten_to_vec2(mov)
 
     // TODO:
-    return true
+    return rl.IsKeyDown(.W)
 }
-
-// move_camera_by_buttons_system :: proc(w: ^ecs.World(Component)) {
-//     if !mouse do return
-//
-//     player_entity, player, ok := get_player(w)
-//     if !ok do return
-//
-//     imgui.Begin("camera control")
-//     imgui.Button("left", {50, 30})
-//     if imgui.IsItemActive() {
-//         player.position.x += 0.3
-//     }
-//     imgui.End()
-//
-//     ecs.set_component(w, player_entity, player)
-// }
 
 get_camera :: proc(w: ^ecs.World(Component)) -> (^ecs.Entity, rl.Camera3D, bool) {
 	for &e in w.entities {
@@ -123,5 +107,5 @@ debug_player_system :: proc(w: ^ecs.World(Component)) {
     imgui.Text(info)
     imgui.End()
 
-    ecs.set_component(w, player_entity, player)
+    ecs.update_component(w, player_entity.id, player)
 }
