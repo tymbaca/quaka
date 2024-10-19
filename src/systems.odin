@@ -110,6 +110,7 @@ debug_player_system :: proc(w: ^ecs.World(Component)) {
         "pos: ", player.position, "\n",
         "dir: ", player.direction, "\n",
         "vel: ", player.velocity, "\n",
+        "speed: ", rl.Vector3Length(player.velocity), "\n",
         sep = "",
     )
     imgui.Begin("player")

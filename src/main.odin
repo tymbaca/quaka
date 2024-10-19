@@ -13,6 +13,7 @@ TODO:
 - private funcs in ecs (update_time)
 - use world temp_allocator? to free all between frames
 - limit up/down look direction
+- `update_component` with only id
 */
 
 Component :: union {
@@ -55,12 +56,26 @@ main :: proc() {
 		Runner {
 			position = {1, 1, 1},
 			direction = rl.Vector3Normalize({-1, -1, -1}),
-			speed = 2,
-			sprint = 2,
+			speed = 2.5,
+			sprint = 1.3,
             height = 0.5,
             jump = 3.4,
 		},
 	)
+    // for _ in 0..<10000 {
+    //     ecs.create_entity(
+    //         &world,
+    //         Player{},
+    //         Runner {
+    //             position = {1, 1, 1},
+    //             direction = rl.Vector3Normalize({-1, -1, -1}),
+    //             speed = 2,
+    //             sprint = 2,
+    //             height = 0.5,
+    //             jump = 3.4,
+    //         },
+    //     )
+    // }
 	camera_entity := ecs.create_entity(&world, camera)
 	// SYSTEM REGISTRATION
 	ecs.register_systems(
@@ -68,10 +83,11 @@ main :: proc() {
 		player_camera_system,
 		common_system,
 		player_move_system,
-        runner_fall_system,
-        fake_ground_system,
-        apply_velocity_system,
         jump_system,
+        apply_velocity_system,
+        is_on_ground_system,
+        ground_friction_system,
+        gravity_system,
 		collection = UPDATE_COLLECTION,
 	)
 	ecs.register_systems(&world, draw_scene_system, collection = DRAW3D_COLLECTION)
