@@ -14,11 +14,14 @@ TODO:
 - use world temp_allocator? to free all between frames
 - limit up/down look direction
 - `update_component` with only id
+- has_component optional `not` arg
 */
 
 Component :: union {
 	Player,
 	Runner,
+    Weapon,
+    Bullet,
 	rl.Camera3D,
 }
 
@@ -56,6 +59,7 @@ main :: proc() {
 	//         },
 	//     )
 	// }
+    
 	ecs.create_entity(
 		&world,
 		Player{},
@@ -74,6 +78,12 @@ main :: proc() {
 			position = {1, 1, 1},
 			target = {0, 0, 0},
 		},
+        Weapon{
+            model = rl.LoadModel("assets/weapon.obj"),
+            bullet_type = .ROCKET,
+            max_ammo = 30,
+            ammo = 30,
+        }
 	)
 	// SYSTEM REGISTRATION
 	ecs.register_systems(
@@ -86,9 +96,11 @@ main :: proc() {
 		is_on_ground_system,
 		ground_friction_system,
 		gravity_system,
+        weapon_fire_system,
+        bullet_system,
 		collection = UPDATE_COLLECTION,
 	)
-	ecs.register_systems(&world, draw_scene_system, collection = DRAW3D_COLLECTION)
+	ecs.register_systems(&world, draw_scene_system, draw_weapon_system, draw_bullet_system, collection = DRAW3D_COLLECTION)
 	ecs.register_systems(&world, debug_player_system, collection = UPDATE_PRE_2D_COLLECTION)
 
 	for !rl.WindowShouldClose() {

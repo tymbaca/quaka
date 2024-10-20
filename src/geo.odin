@@ -9,6 +9,8 @@ RAD2DEG :: linalg.DEG_PER_RAD
 vec2 :: [2]f32
 vec3 :: [3]f32
 
+UP :: vec3{0,1,0}
+
 get_right :: proc(v: vec3) -> vec3 {
     // v.z == flat.y
     flat: vec2 = v.xz
@@ -29,4 +31,14 @@ get_foreward :: proc(v: vec3) -> vec3 {
     flat = rl.Vector2Normalize(flat)
 
     return {flat.x, 0, flat.y}
+}
+
+quaternion_from_vec3 :: proc(v: vec3) -> quaternion128 {
+    q := rl.QuaternionFromMatrix(rl.MatrixLookAt({}, v, UP))
+    q = q * rl.QuaternionFromEuler(0, -90*DEG2RAD, 0)
+
+    axis, angle := rl.QuaternionToAxisAngle(q);
+    axis = rl.Vector3RotateByAxisAngle(axis, UP, -90*DEG2RAD);
+
+    return rl.QuaternionFromAxisAngle(axis, -angle);
 }
