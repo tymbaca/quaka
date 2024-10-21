@@ -15,14 +15,16 @@ TODO:
 - limit up/down look direction
 - `update_component` with only id
 - has_component optional `not` arg
+- move level to user_data
 */
 
 Component :: union {
+	rl.Camera3D,
 	Player,
 	Runner,
     Weapon,
     Bullet,
-	rl.Camera3D,
+    Level,
 }
 
 Assets :: struct {
@@ -36,6 +38,7 @@ Assets :: struct {
 ASSETS: Assets
 
 UPDATE_COLLECTION :: "update"
+EDITOR_COLLECTION :: "update"
 DRAW3D_COLLECTION :: "draw-3d"
 UPDATE_PRE_2D_COLLECTION :: "update-pre-2d"
 DRAW2D_COLLECTION :: "draw-2d"
@@ -51,7 +54,7 @@ main :: proc() {
     rl.ToggleFullscreen()
 	defer rl.CloseWindow()
 	rl.DisableCursor()
-	rl.SetTargetFPS(60)
+	// rl.SetTargetFPS(60)
 
     init()
 
@@ -103,6 +106,18 @@ main :: proc() {
             ammo = 30,
         }
 	)
+
+    ecs.create_entity(
+        &world,
+        Level{
+            blocks = []Level_Block{
+                {type = .ROCK, box = {min = {0,0,0}, max = {0.3,0.3,0.3}}},
+                {type = .ROCK, box = {min = {1,0,0}, max = {1.3,0.3,0.3}}},
+                {type = .ROCK, box = {min = {2,0,0}, max = {2.3,0.3,0.3}}},
+            },
+        },
+    )
+
 	// SYSTEM REGISTRATION
 	ecs.register_systems(
 		&world,
@@ -118,7 +133,14 @@ main :: proc() {
 		player_camera_system,
 		collection = UPDATE_COLLECTION,
 	)
-	ecs.register_systems(&world, draw_scene_system, draw_weapon_system, draw_bullet_system, collection = DRAW3D_COLLECTION)
+
+	ecs.register_systems(
+		&world,
+        // something
+		collection = EDITOR_COLLECTION,
+	)
+
+	ecs.register_systems(&world, draw_scene_system, draw_weapon_system, draw_bullet_system, draw_level_system, collection = DRAW3D_COLLECTION)
 	ecs.register_systems(&world, debug_player_system, collection = UPDATE_PRE_2D_COLLECTION)
 
 	for !rl.WindowShouldClose() {

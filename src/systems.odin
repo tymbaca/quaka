@@ -94,3 +94,13 @@ get_player :: proc(w: ^ecs.World(Component)) -> (^ecs.Entity, Runner, bool) {
     return nil, Runner{}, false
 }
 
+get_level :: proc(w: ^ecs.World(Component)) -> (^ecs.Entity, Level, bool) {
+	for &e in w.entities {
+		if ecs.has_components(e, Level) {
+            level := ecs.must_get_component(w^, e.id, Level)
+            return &e, level, true
+		}
+	}
+
+    return nil, Level{}, false
+}

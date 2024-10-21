@@ -34,7 +34,7 @@ player_move_system :: proc(w: ^ecs.World(Component)) {
 }
 
 
-player_move_on_ground :: proc(w: ^ecs.World(Component), runner: Runner) -> Runner{
+player_move_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> Runner{
     runner := runner
 	ACCELERATION :: 30
 	mov: vec3
@@ -70,7 +70,7 @@ player_move_on_ground :: proc(w: ^ecs.World(Component), runner: Runner) -> Runne
     return runner
 }
 
-player_move_in_air :: proc(w: ^ecs.World(Component), runner: Runner) -> Runner {
+player_move_in_air :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> Runner {
     runner := runner
 	AIR_CONTROL :: 5
 	mov: vec3
@@ -168,8 +168,11 @@ is_on_ground_system :: proc(w: ^ecs.World(Component)) {
 	}
 }
 
-is_on_ground :: proc(w: ^ecs.World(Component), runner: Runner) -> bool {
+is_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> bool {
 	// TODO
+    _, level, ok := get_level(w)
+    if !ok do return false
+
 	return runner.position.y - runner.height <= 0
 }
 
