@@ -100,8 +100,8 @@ rocket_must_explode :: proc(w: ^ecs.World(Component), bullet: Bullet) -> bool {
 	return false
 }
 
-EXPLODE_PUSH_DISTANCE :: 4
-EXPLODE_PUSH_POWER :: 10
+EXPLODE_PUSH_DISTANCE :: 3
+EXPLODE_PUSH_POWER :: 8
 rocket_push_runners_away :: proc(w: ^ecs.World(Component), bullet: Bullet) {
     for e in w.entities {
         if !ecs.has_components(e, Runner) do continue

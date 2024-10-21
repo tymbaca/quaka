@@ -134,7 +134,7 @@ apply_velocity_system :: proc(w: ^ecs.World(Component)) {
 	}
 }
 
-FALL_G :: 9.8
+FALL_G: f32 = 9.8
 MAX_FALL_VEL :: 100
 gravity_system :: proc(w: ^ecs.World(Component)) {
 	for e in w.entities {
@@ -180,6 +180,7 @@ jump_system :: proc(w: ^ecs.World(Component)) {
 
 		if rl.IsKeyPressed(.SPACE) && runner.on_ground {
 			runner.velocity.y = runner.jump
+            rl.PlayAudioStream(ASSETS.sounds.jump)
 		}
 
 		ecs.update_component(w, e.id, runner)

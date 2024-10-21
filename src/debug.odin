@@ -24,7 +24,8 @@ debug_player_system :: proc(w: ^ecs.World(Component)) {
     imgui.SliderFloat("jump", &player.jump, 1, 15, flags = {.NoInput})
     imgui.SliderFloat("height", &player.height, 0, 5, flags = {.NoInput})
     imgui.SliderFloat("speed", &player.speed, 0, 5, flags = {.NoInput})
-    imgui.SliderFloat3("weapon offset", &WEAPON_OFFSET, -5, 5, flags = {.NoInput})
+    imgui.SliderFloat3("weapon offset", &WEAPON_OFFSET, -5, 5)
+    imgui.SliderFloat("G", &FALL_G, 0, 20, flags = {.NoInput})
     //
     if imgui.CollapsingHeader("entities") {
         imgui.TextWrapped(fmt.caprint(w.entities))

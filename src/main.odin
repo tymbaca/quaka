@@ -25,17 +25,35 @@ Component :: union {
 	rl.Camera3D,
 }
 
+Assets :: struct {
+    sounds: struct {
+        jump: rl.Sound,
+        rocket_launch: rl.Sound,
+        rocket_explode: rl.Sound,
+    }
+}
+
+ASSETS: Assets
+
 UPDATE_COLLECTION :: "update"
 DRAW3D_COLLECTION :: "draw-3d"
 UPDATE_PRE_2D_COLLECTION :: "update-pre-2d"
 DRAW2D_COLLECTION :: "draw-2d"
 
+init :: proc() {
+    rl.InitAudioDevice()
+    ASSETS.sounds.jump = rl.LoadSound("assets/jump.mp3")
+}
+
 main :: proc() {
 	rl.SetConfigFlags({rl.ConfigFlag.WINDOW_RESIZABLE})
-	rl.InitWindow(1200, 800, "quaka")
+	rl.InitWindow(1920, 1080, "quaka")
+    rl.ToggleFullscreen()
 	defer rl.CloseWindow()
 	rl.DisableCursor()
-	// rl.SetTargetFPS(60)
+	rl.SetTargetFPS(60)
+
+    init()
 
 	imgui.CreateContext(nil)
 	defer imgui.DestroyContext(nil)
@@ -88,7 +106,6 @@ main :: proc() {
 	// SYSTEM REGISTRATION
 	ecs.register_systems(
 		&world,
-		player_camera_system,
 		common_system,
 		player_move_system,
 		jump_system,
@@ -98,6 +115,7 @@ main :: proc() {
 		gravity_system,
         weapon_fire_system,
         bullet_system,
+		player_camera_system,
 		collection = UPDATE_COLLECTION,
 	)
 	ecs.register_systems(&world, draw_scene_system, draw_weapon_system, draw_bullet_system, collection = DRAW3D_COLLECTION)
@@ -128,6 +146,7 @@ main :: proc() {
 
 		imgui.Render()
 		imgui_rl.render_draw_data(imgui.GetDrawData())
+
 		rl.EndDrawing()
 	}
 }

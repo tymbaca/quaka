@@ -7,17 +7,16 @@ import imgui "../lib/imgui"
 import imgui_rl "../lib/imgui/imgui_impl_raylib"
 import "core:math/linalg"
 
-mouse_enabled := false
+mouse_enabled := true
 
 common_system :: proc(w: ^ecs.World(Component)) {
-    if !mouse_enabled {
-        rl.DisableCursor()
-    } 
     if rl.IsKeyReleased(.TAB) {
         mouse_enabled = !mouse_enabled
         if mouse_enabled {
             rl.EnableCursor()
-        } 
+        } else {
+            rl.DisableCursor()
+        }
     }
 }
 
@@ -31,10 +30,19 @@ player_camera_system :: proc(w: ^ecs.World(Component)) {
     // Logic here
     mouse := rl.GetMouseDelta()
 
+    // Limit upper and lower angle (TODO make better limit)
+    if rl.Vector3Angle({0,1,0}, runner.direction) < 0.2 {
+        if mouse.y < 0 do mouse.y = 0
+    }
+    if rl.Vector3Angle({0,-1,0}, runner.direction) < 0.2 {
+        if mouse.y > 0 do mouse.y = 0
+    }
+
     if !mouse_enabled {
         SENSITIVITY :: 0.002
         runner.direction = rl.Vector3RotateByAxisAngle(runner.direction, {0,1,0}, -mouse.x * SENSITIVITY)
         runner.direction = rl.Vector3RotateByAxisAngle(runner.direction, get_right(runner.direction), -mouse.y * SENSITIVITY)
+        runner.direction = rl.Vector3Normalize(runner.direction)
     }
 
     camera.position = runner.position
