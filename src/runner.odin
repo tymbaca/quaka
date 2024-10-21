@@ -18,6 +18,7 @@ Runner :: struct {
 	is_running: bool,
 	height:     f32,
 	jump:       f32,
+	collider:   rl.BoundingBox,
 }
 
 player_move_system :: proc(w: ^ecs.World(Component)) {
@@ -34,9 +35,9 @@ player_move_system :: proc(w: ^ecs.World(Component)) {
 }
 
 
-player_move_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> Runner{
-    runner := runner
-	ACCELERATION :: 30
+ACCELERATION :: 30
+player_move_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> Runner {
+	runner := runner
 	mov: vec3
 
 	if rl.IsKeyDown(.W) {
@@ -67,12 +68,12 @@ player_move_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Ru
 
 	runner.velocity.xz += mov.xz * ACCELERATION * w.delta
 	runner.velocity.xz = rl.Vector2ClampValue(runner.velocity.xz, 0, speed)
-    return runner
+	return runner
 }
 
+AIR_CONTROL :: 10
 player_move_in_air :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> Runner {
-    runner := runner
-	AIR_CONTROL :: 5
+	runner := runner
 	mov: vec3
 
 	if rl.IsKeyDown(.W) {
@@ -93,7 +94,7 @@ player_move_in_air :: #force_inline proc(w: ^ecs.World(Component), runner: Runne
 
 	// clamp in air speed by it's maximum sprint speed
 	runner.velocity.xz = rl.Vector2ClampValue(runner.velocity.xz, 0, runner.speed * runner.sprint)
-    return runner
+	return runner
 }
 
 GROUND_FRICTION :: 5
@@ -110,7 +111,7 @@ ground_friction_system :: proc(w: ^ecs.World(Component)) {
 				continue
 			}
 
-            // apply friction
+			// apply friction
 			fricton := 1 - (GROUND_FRICTION * w.delta)
 			runner.velocity.xz *= fricton
 
@@ -144,7 +145,7 @@ gravity_system :: proc(w: ^ecs.World(Component)) {
 		if !runner.on_ground {
 			runner.velocity.y -= FALL_G * w.delta
 			runner.velocity.y = rl.Clamp(runner.velocity.y, -MAX_FALL_VEL, +MAX_FALL_VEL)
-		} 
+		}
 
 		ecs.update_component(w, e.id, runner)
 	}
@@ -155,8 +156,26 @@ is_on_ground_system :: proc(w: ^ecs.World(Component)) {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
-        // runner.on_ground = is_on_ground(w, runner)
-		if is_on_ground(w, runner) {
+		_, level, ok := get_level(w)
+		if !ok do return
+
+		hit := false
+		for block in level.blocks {
+			ray := rl.Ray {
+				position  = runner.position,
+				direction = DOWN,
+			}
+			collision := rl.GetRayCollisionBox(ray, block.box)
+			if collision.hit && collision.distance <= runner.height {
+				hit = true
+				diff := runner.height - collision.distance
+				// runner.position += collision.normal * diff
+				runner.position += UP * diff
+			}
+		}
+
+		// runner.on_ground = is_on_ground(w, runner)
+		if hit {
 			runner.on_ground = true
 			runner.velocity.y = 0
 			// runner.position.y = runner.height
@@ -170,16 +189,19 @@ is_on_ground_system :: proc(w: ^ecs.World(Component)) {
 
 is_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> bool {
 	// TODO
-    _, level, ok := get_level(w)
-    if !ok do return false
+	_, level, ok := get_level(w)
+	if !ok do return false
 
-    for block in level.blocks {
-        ray := rl.Ray{position = runner.position, direction = DOWN}
-        collision := rl.GetRayCollisionBox(ray, block.box) 
-        if collision.hit && collision.distance <= runner.height {
-            return true
-        }
-    }
+	for block in level.blocks {
+		ray := rl.Ray {
+			position  = runner.position,
+			direction = DOWN,
+		}
+		collision := rl.GetRayCollisionBox(ray, block.box)
+		if collision.hit && collision.distance <= runner.height {
+			return true
+		}
+	}
 
 	return runner.position.y - runner.height <= 0
 }
@@ -191,7 +213,7 @@ jump_system :: proc(w: ^ecs.World(Component)) {
 
 		if rl.IsKeyPressed(.SPACE) && runner.on_ground {
 			runner.velocity.y = runner.jump
-            rl.PlayAudioStream(ASSETS.sounds.jump)
+			rl.PlayAudioStream(ASSETS.sounds.jump)
 		}
 
 		ecs.update_component(w, e.id, runner)

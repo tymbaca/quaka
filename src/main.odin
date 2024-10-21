@@ -54,7 +54,7 @@ main :: proc() {
     rl.ToggleFullscreen()
 	defer rl.CloseWindow()
 	rl.DisableCursor()
-	// rl.SetTargetFPS(60)
+	rl.SetTargetFPS(60)
 
     init()
 
@@ -111,9 +111,10 @@ main :: proc() {
         &world,
         Level{
             blocks = []Level_Block{
-                {type = .ROCK, box = {min = {0,0,0}, max = {0.3,0.3,0.3}}},
-                {type = .ROCK, box = {min = {1,0,0}, max = {1.3,0.3,0.3}}},
-                {type = .ROCK, box = {min = {2,0,0}, max = {2.3,0.3,0.3}}},
+                {type = .ROCK, box = {min = {-100,-2,-100}, max = {100,0,100}}},
+                {type = .ROCK, box = {min = {0,0,0}, max = {1,0.5,0.5}}},
+                {type = .ROCK, box = {min = {1,0,0}, max = {2,0.5,0.5}}},
+                {type = .ROCK, box = {min = {2,0,0}, max = {3,0.5,0.5}}},
             },
         },
     )

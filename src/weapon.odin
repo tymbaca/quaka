@@ -23,7 +23,7 @@ Bullet_Type :: enum {
 	ROCKET,
 }
 
-WEAPON_OFFSET := vec3{0, 0, 0}
+WEAPON_OFFSET := vec3{0, -0.065, 0}
 
 weapon_fire_system :: proc(w: ^ecs.World(Component)) {
 	if mouse_enabled do return
@@ -95,7 +95,7 @@ rocket_handle :: proc(w: ^ecs.World(Component), id: int, bullet: Bullet) {
 rocket_must_explode :: proc(w: ^ecs.World(Component), bullet: Bullet) -> bool {
 	if bullet.ttl <= 0 do return true
 
-	if is_colliding(bullet.position) do return true
+	if is_colliding(w, bullet.position) do return true
 
 	return false
 }
@@ -124,8 +124,16 @@ rocket_push_runners_away :: proc(w: ^ecs.World(Component), bullet: Bullet) {
     }
 }
 
-is_colliding :: proc(position: vec3) -> bool {
-	if position.y <= 0 do return true
+BULLET_COLLIDER_RADIUS :: 0.05
+is_colliding :: proc(w: ^ecs.World(Component), position: vec3) -> bool {
+    _, level, ok := get_level(w)
+    if ok {
+        for block in level.blocks {
+            if rl.CheckCollisionBoxSphere(block.box, position, BULLET_COLLIDER_RADIUS) {
+                return true
+            }
+        }
+    }
 
 	return false
 }
