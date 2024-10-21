@@ -11,6 +11,7 @@ vec3 :: [3]f32
 ivec3 :: [3]i32
 
 UP :: vec3{0, 1, 0}
+DOWN :: vec3{0, -1, 0}
 
 get_right :: proc(v: vec3) -> vec3 {
 	// v.z == flat.y

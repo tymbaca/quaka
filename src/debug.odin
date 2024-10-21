@@ -20,7 +20,8 @@ debug_player_system :: proc(w: ^ecs.World(Component)) {
         "vel: ", player.velocity, "\n",
         "speed: ", rl.Vector3Length(player.velocity), "\n",
         "hor_speed: ", rl.Vector2Length(player.velocity.xz), "\n",
-        "level: ", level, "\n",
+        "on_ground: ", player.on_ground, "\n",
+        // "level: ", level, "\n",
         sep = "",
     )
     imgui.Begin("player")

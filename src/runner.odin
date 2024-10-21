@@ -144,9 +144,7 @@ gravity_system :: proc(w: ^ecs.World(Component)) {
 		if !runner.on_ground {
 			runner.velocity.y -= FALL_G * w.delta
 			runner.velocity.y = rl.Clamp(runner.velocity.y, -MAX_FALL_VEL, +MAX_FALL_VEL)
-		} else {
-			runner.velocity.y = 0
-		}
+		} 
 
 		ecs.update_component(w, e.id, runner)
 	}
@@ -157,9 +155,11 @@ is_on_ground_system :: proc(w: ^ecs.World(Component)) {
 		if !ecs.has_components(e, Runner) do continue
 		runner := ecs.must_get_component(w^, e.id, Runner)
 
+        // runner.on_ground = is_on_ground(w, runner)
 		if is_on_ground(w, runner) {
 			runner.on_ground = true
-			runner.position.y = runner.height
+			runner.velocity.y = 0
+			// runner.position.y = runner.height
 		} else {
 			runner.on_ground = false
 		}
@@ -172,6 +172,14 @@ is_on_ground :: #force_inline proc(w: ^ecs.World(Component), runner: Runner) -> 
 	// TODO
     _, level, ok := get_level(w)
     if !ok do return false
+
+    for block in level.blocks {
+        ray := rl.Ray{position = runner.position, direction = DOWN}
+        collision := rl.GetRayCollisionBox(ray, block.box) 
+        if collision.hit && collision.distance <= runner.height {
+            return true
+        }
+    }
 
 	return runner.position.y - runner.height <= 0
 }
